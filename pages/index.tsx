@@ -1,13 +1,14 @@
 import { Chat } from "@/components/Chat/Chat";
 import { Footer } from "@/components/Layout/Footer";
 import { Navbar } from "@/components/Layout/Navbar";
-import { Message } from "@/types";
+import { Message, MedResponse } from "@/types";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [threadId, setThreadId] = useState<string>();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -21,15 +22,20 @@ export default function Home() {
     setMessages(updatedMessages);
     setLoading(true);
 
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        messages: updatedMessages
-      })
+    const params = new URLSearchParams({
+      prompt: message.content,
     });
+
+    if (threadId) {
+      params.append('thread_id', threadId!);
+    }
+    const response = await fetch(`https://vikiai.azurewebsites.net/api/medai?${params}`, {
+      method: "GET",
+    });
+
+    // const response = await fetch(`http://localhost:7071/api/medai?${params}`, {
+    //   method: "GET",
+    // });
 
     if (!response.ok) {
       setLoading(false);
@@ -53,6 +59,14 @@ export default function Home() {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
       const chunkValue = decoder.decode(value);
+      let response: MedResponse;
+
+      try {
+        response = JSON.parse(chunkValue) as MedResponse;
+        setThreadId(response.thread_id);
+      } catch (error) {
+        return;
+      }
 
       if (isFirst) {
         isFirst = false;
@@ -60,7 +74,7 @@ export default function Home() {
           ...messages,
           {
             role: "assistant",
-            content: chunkValue
+            content: response.message
           }
         ]);
       } else {
@@ -68,7 +82,7 @@ export default function Home() {
           const lastMessage = messages[messages.length - 1];
           const updatedMessage = {
             ...lastMessage,
-            content: lastMessage.content + chunkValue
+            content: lastMessage.content + response.message
           };
           return [...messages.slice(0, -1), updatedMessage];
         });
@@ -80,7 +94,7 @@ export default function Home() {
     setMessages([
       {
         role: "assistant",
-        content: `Hi there! I'm Chatbot UI, an AI assistant. I can help you with things like answering questions, providing information, and helping with tasks. How can I help you?`
+        content: `Hi there! I'm an AI assistant. I can generate health-related prompts based on synthetic and device data, providing real-time feedback and visual metrics.`
       }
     ]);
   };
@@ -93,7 +107,7 @@ export default function Home() {
     setMessages([
       {
         role: "assistant",
-        content: `Hi there! I'm Chatbot UI, an AI assistant. I can help you with things like answering questions, providing information, and helping with tasks. How can I help you?`
+        content: `Hi there! I'm an AI assistant. I can generate health-related prompts based on synthetic and device data, providing real-time feedback and visual metrics.`
       }
     ]);
   }, []);
@@ -101,7 +115,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Chatbot UI</title>
+        <title>Customer UI</title>
         <meta
           name="description"
           content="A simple chatbot starter kit for OpenAI's chat model using Next.js, TypeScript, and Tailwind CSS."

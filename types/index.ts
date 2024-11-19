@@ -7,4 +7,9 @@ export interface Message {
   content: string;
 }
 
+export interface MedResponse {
+  thread_id: string;
+  message: string;
+}
+
 export type Role = "assistant" | "user";
