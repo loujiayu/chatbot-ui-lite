@@ -2,12 +2,14 @@ import { Chat } from "@/components/Chat/Chat";
 import { Footer } from "@/components/Layout/Footer";
 import { Navbar } from "@/components/Layout/Navbar";
 import { Message, MedResponse } from "@/types";
+import SocialLogin from "@/components/Layout/SocialLogin";
 import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [login, setLogin] = useState<boolean>(true);
   const [threadId, setThreadId] = useState<string>();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -111,6 +113,14 @@ export default function Home() {
       }
     ]);
   }, []);
+
+  
+  if (login) {
+    return <div onClick={() => setLogin(false)}>
+      <SocialLogin />
+    </div>
+  }
+
 
   return (
     <>
