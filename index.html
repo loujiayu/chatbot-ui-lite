@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Health Assistant</title>
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  </head>
+  <body>
+    <div class="phone-container">
+      <div class="app-header">
+        <span>10:08</span>
+        <div>
+          <i class="fas fa-signal"></i>
+          <i class="fas fa-wifi"></i>
+          <i class="fas fa-battery-full"></i>
+        </div>
+      </div>
+      
+      <div class="main-content">
+        <div class="health-icon">
+          <i class="fas fa-heartbeat" style="color: white; font-size: 30px;"></i>
+        </div>
+        
+        <div class="chat-container">
+          <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+              <div class="message-wrapper">
+                <div class="message-icon">
+                  <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                  Hello! Its Vicki, what brings you in today?
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Type your message..." />
+            <input type="file" id="imageInput" accept="image/*" capture="environment" style="display: none" />
+            <button class="camera-button" onclick="document.getElementById('imageInput').click()">
+              <i class="fas fa-camera"></i>
+            </button>
+            <button class="voice-button" onclick="toggleVoiceInput()">
+              <i class="fas fa-microphone"></i>
+            </button>
+            <button onclick="sendMessage()" class="send-button">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="nav-buttons">
+          <div class="nav-item">
+            <button class="nav-button" onclick="showHIPAAPrompt()">
+              <i class="fas fa-shield-alt"></i>
+            </button>
+            <span class="nav-label">HIPAA</span>
+          </div>
+          <div class="nav-item">
+            <button class="nav-button">
+              <i class="fas fa-heart"></i>
+            </button>
+            <span class="nav-label">Tests</span>
+          </div>
+          <div class="nav-item">
+            <button class="nav-button">
+              <i class="fas fa-bell"></i>
+            </button>
+            <span class="nav-label">Alerts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HIPAA Permission Modal -->
+    <div id="hipaaModal" class="modal">
+      <div class="modal-content">
+        <h2>HIPAA Records Access</h2>
+        <p>Would you like to grant access to your HIPAA-compliant Electronic Health Records (EHR) and Electronic Medical Records (EMR)?</p>
+        <p class="privacy-note">Your privacy is protected under HIPAA regulations.</p>
+        <div class="modal-buttons">
+          <button onclick="handleHIPAAPermission(true)" class="allow-btn">Allow Access</button>
+          <button onclick="handleHIPAAPermission(false)" class="deny-btn">Deny Access</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let recognition = null;
+      
+      // Set up image input handler
+      document.getElementById('imageInput').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+          const file = e.target.files[0];
+          const reader = new FileReader();
+          
+          reader.onload = function(e) {
+            addImageMessage(e.target.result);
+          };
+          
+          reader.readAsDataURL(file);
+        }
+      });
+
+      function addImageMessage(imageUrl) {
+        const messages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        
+        messageDiv.innerHTML = `
+          <div class="message-wrapper">
+            <div class="message-icon">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="message-content image-message">
+              <img src="${imageUrl}" alt="Uploaded image" />
+            </div>
+          </div>
+        `;
+        
+        messages.appendChild(messageDiv);
+        messages.scrollTop = messages.scrollHeight;
+        
+        // Simulate assistant response
+        setTimeout(() => {
+          addMessage('I received your image. How can I help you with this?', 'assistant');
+        }, 1000);
+      }
+      
+      function initSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window) {
+          recognition = new webkitSpeechRecognition();
+          recognition.continuous = false;
+          recognition.interimResults = false;
+          
+          recognition.onresult = function(event) {
+            const text = event.results[0][0].transcript;
+            document.getElementById('userInput').value = text;
+            sendMessage();
+          };
+          
+          recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+          };
+        }
+      }
+      
+      function toggleVoiceInput() {
+        if (!recognition) {
+          initSpeechRecognition();
+        }
+        
+        const voiceButton = document.querySelector('.voice-button i');
+        
+        if (recognition) {
+          if (voiceButton.classList.contains('recording')) {
+            recognition.stop();
+            voiceButton.classList.remove('recording');
+            voiceButton.classList.remove('fa-microphone-slash');
+            voiceButton.classList.add('fa-microphone');
+          } else {
+            recognition.start();
+            voiceButton.classList.add('recording');
+            voiceButton.classList.remove('fa-microphone');
+            voiceButton.classList.add('fa-microphone-slash');
+          }
+        }
+      }
+
+      function showHIPAAPrompt() {
+        document.getElementById('hipaaModal').style.display = 'flex';
+      }
+
+      function handleHIPAAPermission(granted) {
+        const modal = document.getElementById('hipaaModal');
+        if (granted) {
+          alert('Thank you. Access to your health records has been granted.');
+        } else {
+          alert('Access to health records was denied.');
+        }
+        modal.style.display = 'none';
+      }
+
+      function sendMessage() {
+        const input = document.getElementById('userInput');
+        const message = input.value.trim();
+        
+        if (message) {
+          addMessage(message, 'user');
+          input.value = '';
+          
+          // Simulate assistant response
+          setTimeout(() => {
+            addMessage('I understand. Please tell me more about how you\'re feeling.', 'assistant');
+          }, 1000);
+        }
+      }
+
+      function addMessage(text, sender) {
+        const messages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+        
+        const icon = sender === 'user' ? 'user' : 'robot';
+        messageDiv.innerHTML = `
+          <div class="message-wrapper">
+            <div class="message-icon">
+              <i class="fas fa-${icon}"></i>
+            </div>
+            <div class="message-content">
+              ${text}
+            </div>
+          </div>
+        `;
+        
+        messages.appendChild(messageDiv);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      // Allow sending message with Enter key
+      document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+    </script>
+  </body>
+</html>

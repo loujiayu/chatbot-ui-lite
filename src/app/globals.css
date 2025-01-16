@@ -1,0 +1,220 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #00CEC2;
+  --background-color: #1a2c3a;
+}
+
+body {
+  @apply m-0 flex justify-center items-center min-h-screen bg-gradient-to-b from-background to-gray-900;
+}
+
+.phone-container {
+  @apply w-[500px] p-8 rounded-[40px] shadow-2xl;
+  background: linear-gradient(165deg, #1a2c3a, #151f28);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.main-content {
+  @apply space-y-8;
+}
+
+.health-icon {
+  @apply w-16 h-16 rounded-full mx-auto flex items-center justify-center transform transition-all duration-300 hover:scale-110;
+  background: linear-gradient(135deg, var(--primary-color), #00a89e);
+  box-shadow: 0 8px 20px rgba(0, 206, 194, 0.3);
+}
+
+.chat-container {
+  @apply bg-white/5 backdrop-blur-lg rounded-3xl p-6 h-[400px] flex flex-col;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.chat-messages {
+  @apply flex-grow overflow-y-auto pr-3 space-y-4;
+  scrollbar-width: thin;
+}
+
+.message {
+  @apply flex flex-col transition-all duration-300 ease-out;
+}
+
+.message.user {
+  @apply items-end;
+}
+
+.message.assistant {
+  @apply items-start;
+}
+
+.message-wrapper {
+  @apply flex items-end gap-3 max-w-[85%] animate-fadeIn;
+}
+
+.message.user .message-wrapper {
+  @apply flex-row-reverse;
+}
+
+.message-icon {
+  @apply w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg;
+  background: linear-gradient(135deg, var(--primary-color), #00a89e);
+}
+
+.message.user .message-icon {
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+}
+
+.message-icon i {
+  @apply text-sm text-white;
+}
+
+.message-content {
+  @apply p-3.5 rounded-2xl text-white break-words shadow-lg;
+}
+
+.message.user .message-content {
+  @apply rounded-tr-sm;
+  background: linear-gradient(135deg, var(--primary-color), #00a89e);
+}
+
+.message.assistant .message-content {
+  @apply rounded-tl-sm bg-white/10 backdrop-blur-sm;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.message-content.image-message {
+  @apply p-1.5;
+}
+
+.message-content.image-message img {
+  @apply max-w-[250px] rounded-xl shadow-lg;
+}
+
+.chat-input {
+  @apply flex items-center gap-4 p-4 mt-4 rounded-2xl bg-white/5 backdrop-blur-lg;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-input input {
+  @apply flex-grow bg-transparent border-none text-white px-4 py-2 outline-none text-base placeholder-white/40;
+  min-width: 0;
+}
+
+.voice-button,
+.camera-button,
+.send-button {
+  @apply w-[44px] h-[44px] rounded-full flex items-center justify-center cursor-pointer text-white transition-all duration-300 ease-out shadow-lg hover:shadow-xl active:scale-95 flex-shrink-0;
+}
+
+.voice-button i,
+.camera-button i,
+.send-button i {
+  @apply text-lg transition-transform duration-300;
+}
+
+.camera-button {
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+}
+
+.voice-button {
+  background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.send-button {
+  background: linear-gradient(135deg, var(--primary-color), #00a89e);
+}
+
+.voice-button:hover i,
+.camera-button:hover i,
+.send-button:hover i {
+  @apply scale-110;
+}
+
+.voice-button i.recording {
+  @apply text-red-500 animate-pulse;
+}
+
+.nav-buttons {
+  @apply flex justify-around mt-8;
+}
+
+.nav-item {
+  @apply flex flex-col items-center gap-2 transition-transform duration-300 hover:scale-105;
+}
+
+.nav-button {
+  @apply w-14 h-14 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all duration-300;
+  background: linear-gradient(135deg, var(--primary-color), #00a89e);
+}
+
+.nav-button:hover {
+  @apply shadow-xl transform -translate-y-1;
+}
+
+.nav-button i {
+  @apply text-white text-xl transition-transform duration-300;
+}
+
+.nav-button:hover i {
+  @apply scale-110;
+}
+
+.nav-label {
+  @apply text-white/80 text-sm font-medium;
+}
+
+.modal {
+  @apply hidden fixed inset-0 bg-black/70 backdrop-blur-sm justify-center items-center z-50;
+}
+
+.modal-content {
+  @apply bg-white/10 backdrop-blur-lg p-8 rounded-3xl max-w-[80%] text-center shadow-2xl;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-content h2 {
+  @apply text-2xl font-bold text-white mb-6;
+  background: linear-gradient(135deg, var(--primary-color), #00a89e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.privacy-note {
+  @apply text-sm text-white/60 my-6;
+}
+
+.modal-buttons {
+  @apply flex justify-center gap-6 mt-6;
+}
+
+.modal-buttons button {
+  @apply px-6 py-3 rounded-xl cursor-pointer font-semibold transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95;
+}
+
+.allow-btn {
+  background: linear-gradient(135deg, var(--primary-color), #00a89e);
+  @apply text-white;
+}
+
+.deny-btn {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  @apply text-white;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
