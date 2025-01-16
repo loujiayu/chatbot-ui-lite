@@ -107,12 +107,8 @@ export default function Home() {
                   <div className="message-icon">
                     <i className={`fas fa-${msg.type === 'user' ? 'user' : 'robot'}`}></i>
                   </div>
-                  <div className={`message-content ${msg.isImage ? 'image-message' : ''}`}>
-                    {msg.isImage ? (
-                      <img src={msg.content} alt="Uploaded" />
-                    ) : (
-                      msg.content
-                    )}
+                  <div className={`message-content`}>
+                    {msg.content}
                   </div>
                 </div>
               </div>
