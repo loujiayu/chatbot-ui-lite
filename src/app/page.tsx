@@ -2,15 +2,75 @@
 
 import { useState, useRef, useEffect } from 'react';
 
+
+const SYSTEM_PROMPT = `You are Vicki, a friendly and professional healthcare assistant. Your role is to:
+- Help users discuss their health concerns
+- Provide general health information
+- Guide users to appropriate medical resources
+- Maintain a compassionate and supportive tone
+- Never provide medical diagnosis or treatment advice
+- Encourage users to seek professional medical help when needed`;
+
+const fetchDefaultPrompt = () => {
+  return new Promise<string>(async (resolve) => {
+    const response = await fetch('https://prompts-85352025976.us-central1.run.app?key=patient');
+    if (!response.ok) throw new Error('Failed to fetch prompt');
+    const data = await response.text();
+    resolve(JSON.parse(data).content)
+  });
+};
+
+interface Notification {
+  message: string;
+  type: 'success' | 'error';
+}
+
 export default function Home() {
   const [messages, setMessages] = useState([{
     type: 'assistant',
     content: "Hello! Its Vicki, what brings you in today?"
   }]);
+  const [notification, setNotification] = useState<Notification | null>(null);
+
   const [inputValue, setInputValue] = useState('');
+  const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [instruction, setInstruction] = useState("");
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const modal = document.querySelector('#configModal .modal-content');
+      if (modal && !modal.contains(event.target as Node)) {
+        const modelContainer = document.getElementById("configModal")!;
+        modelContainer.style.display = 'none';
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const loadPrompt = async () => {
+      try {
+        const prompt = await fetchDefaultPrompt();
+        // setSystemPrompt(prompt);
+        // Use the system prompt as the initial message
+        setInstruction(prompt)
+      } catch (error) {
+        console.error('Error loading default prompt:', error);
+        // Add a fallback message if prompt loading fails
+      } finally {
+        setIsLoadingPrompt(false);
+      }
+    };
+    loadPrompt();
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
@@ -67,13 +127,48 @@ export default function Home() {
     }
   };
 
-  const sendMessage = (text: string = inputValue) => {
+
+  const sendMessage = async (text: string = inputValue) => {
     if (text.trim()) {
-      setMessages(prev => [...prev, 
-        { type: 'user', content: text },
-        { type: 'assistant', content: "I understand. Please tell me more about how you're feeling." }
-      ]);
+      // Add user message immediately
+      const updatedMessages = [
+        ...messages,
+        { type: 'user', content: text }
+      ];
+      setMessages(updatedMessages);
       setInputValue('');
+
+      try {
+        const response = await fetch('https://doctormt-85352025976.us-central1.run.app?ispatient=true', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: updatedMessages,
+            instruction
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        
+        // Add assistant response
+        setMessages(prev => [...prev, { 
+          type: 'assistant', 
+          content: data.message || "I understand. Please tell me more about how you're feeling."
+        }]);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        // Add fallback response in case of error
+        setMessages(prev => [...prev, { 
+          type: 'assistant', 
+          content: "I apologize, but I'm having trouble connecting right now. Please try again."
+        }]);
+      }
     }
   };
 
@@ -82,14 +177,72 @@ export default function Home() {
     if (modal) modal.style.display = 'flex';
   };
 
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+  };
+
+  const showConfigPrompt = () => {
+    const modal = document.getElementById('configModal');
+    if (modal) modal.style.display = 'flex';
+  };
+
   const handleHIPAAPermission = (granted: boolean) => {
     const modal = document.getElementById('hipaaModal');
     if (granted) {
-      alert('Thank you. Access to your health records has been granted.');
+      showNotification('Access to your health records has been granted.', 'success');
     } else {
-      alert('Access to health records was denied.');
+      showNotification('Access to health records was denied.', 'error');
     }
     if (modal) modal.style.display = 'none';
+  };
+
+  const handleConfigSave = async () => {
+    const modal = document.getElementById('configModal');
+    setIsSavingPrompt(true);
+
+    try {
+      const response = await fetch('https://prompts-85352025976.us-central1.run.app?key=patient', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: instruction
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save prompt');
+      }
+
+      // setMessages(prev => {
+      //   const updatedMessages = [...prev];
+      //   if (updatedMessages.length > 0) {
+      //     updatedMessages[0] = {
+      //       type: 'assistant',
+      //       content: systemPrompt
+      //     };
+      //   }
+      //   return updatedMessages;
+      // });
+
+      showNotification('Configuration saved successfully.', 'success');
+      if (modal) modal.style.display = 'none';
+    } catch (error) {
+      console.error('Error saving prompt:', error);
+      showNotification('Failed to save configuration. Please try again.', 'error');
+    } finally {
+      setIsSavingPrompt(false);
+    }
   };
 
   return (
@@ -101,18 +254,25 @@ export default function Home() {
         
         <div className="chat-container">
           <div className="chat-messages" id="chatMessages">
-            {messages.map((msg, index) => (
-              <div key={index} className={`message ${msg.type}`}>
-                <div className="message-wrapper">
-                  <div className="message-icon">
-                    <i className={`fas fa-${msg.type === 'user' ? 'user' : 'robot'}`}></i>
-                  </div>
-                  <div className={`message-content`}>
-                    {msg.content}
+            {isLoadingPrompt ? (
+              <div className="text-white text-center space-y-4">
+                <div className="loading-spinner" />
+                <p>Loading prompt...</p>
+              </div>
+            ) : (
+              messages.map((msg, index) => (
+                <div key={index} className={`message ${msg.type}`}>
+                  <div className="message-wrapper">
+                    <div className="message-icon">
+                      <i className={`fas fa-${msg.type === 'user' ? 'user' : 'robot'}`}></i>
+                    </div>
+                    <div className={`message-content`}>
+                      {msg.content}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
           <div className="chat-input">
@@ -151,10 +311,10 @@ export default function Home() {
             <span className="nav-label">HIPAA</span>
           </div>
           <div className="nav-item">
-            <button className="nav-button">
-              <i className="fas fa-heart"></i>
+            <button className="nav-button" onClick={showConfigPrompt}>
+              <i className="fas fa-cog"></i>
             </button>
-            <span className="nav-label">Tests</span>
+            <span className="nav-label">Config</span>
           </div>
           <div className="nav-item">
             <button className="nav-button">
@@ -168,11 +328,58 @@ export default function Home() {
       <div id="hipaaModal" className="modal">
         <div className="modal-content">
           <h2>HIPAA Records Access</h2>
-          <p>Would you like to grant access to your HIPAA-compliant Electronic Health Records (EHR) and Electronic Medical Records (EMR)?</p>
+          {/* <p>Would you like to grant access to your HIPAA-compliant Electronic Health Records (EHR) and Electronic Medical Records (EMR)?</p> */}
           <p className="privacy-note">Your privacy is protected under HIPAA regulations.</p>
           <div className="modal-buttons">
             <button onClick={() => handleHIPAAPermission(true)} className="allow-btn">Allow Access</button>
             <button onClick={() => handleHIPAAPermission(false)} className="deny-btn">Deny Access</button>
+          </div>
+        </div>
+      </div>
+      {notification && (
+        <div className={`notification ${notification.type}`}>
+          <div className="notification-content">
+            <i className={`fas fa-${notification.type === 'success' ? 'check-circle' : 'exclamation-circle'}`}></i>
+            <span>{notification.message}</span>
+          </div>
+        </div>
+      )}
+      <div id="configModal" className="modal">
+        <div className="modal-content">
+          <h2>Prompt Configuration</h2>
+          <div className="config-form">
+            <div className="config-item">
+              {isLoadingPrompt ? (
+                <div className="text-white text-center space-y-4">
+                  <div className="loading-spinner" />
+                  <p>Loading prompt...</p>
+                </div>
+              ) : (
+                <textarea 
+                  className="config-input prompt-editor"
+                  value={instruction}
+                  onChange={(e) => setInstruction(e.target.value)}
+                  rows={6}
+                  placeholder="Enter custom system prompt (optional)"
+                />
+              )}
+            </div>
+          </div>
+          <div className="modal-buttons">
+            <button 
+              onClick={handleConfigSave} 
+              className="allow-btn"
+              disabled={isSavingPrompt}
+            >
+              {isSavingPrompt ? (
+                <>
+                  <div className="loading-spinner-sm" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
           </div>
         </div>
       </div>
