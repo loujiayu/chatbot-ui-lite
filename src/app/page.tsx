@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-
+import SSOLogin from './SSOLogin';
 
 const SYSTEM_PROMPT = `You are Vicki, a friendly and professional healthcare assistant. Your role is to:
 - Help users discuss their health concerns
@@ -39,6 +39,7 @@ export default function Home() {
   const [recognition, setRecognition] = useState<any>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [instruction, setInstruction] = useState("");
+  const [showSSOLogin, setShowSSOLogin] = useState(true);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -245,86 +246,99 @@ export default function Home() {
     }
   };
 
+  const navigateToSSOLogin = () => {
+    setShowSSOLogin(true);
+  };
+
   return (
     <div className="phone-container">
-      <div className="main-content">
-        <div className="health-icon">
-          <i className="fas fa-heartbeat" style={{ color: 'white', fontSize: '30px' }}></i>
-        </div>
-        
-        <div className="chat-container">
-          <div className="chat-messages" id="chatMessages">
-            {isLoadingPrompt ? (
-              <div className="text-white text-center space-y-4">
-                <div className="loading-spinner" />
-                <p>Loading prompt...</p>
-              </div>
-            ) : (
-              messages.map((msg, index) => (
-                <div key={index} className={`message ${msg.type}`}>
-                  <div className="message-wrapper">
-                    <div className="message-icon">
-                      <i className={`fas fa-${msg.type === 'user' ? 'user' : 'robot'}`}></i>
-                    </div>
-                    <div className={`message-content`}>
-                      {msg.content}
+      {showSSOLogin ? (
+        <SSOLogin />
+      ) : (
+        <div className="main-content">
+          <div className="health-icon">
+            <i className="fas fa-heartbeat" style={{ color: 'white', fontSize: '30px' }}></i>
+          </div>
+          
+          <div className="chat-container">
+            <div className="chat-messages" id="chatMessages">
+              {isLoadingPrompt ? (
+                <div className="text-white text-center space-y-4">
+                  <div className="loading-spinner" />
+                  <p>Loading prompt...</p>
+                </div>
+              ) : (
+                messages.map((msg, index) => (
+                  <div key={index} className={`message ${msg.type}`}>
+                    <div className="message-wrapper">
+                      <div className="message-icon">
+                        <i className={`fas fa-${msg.type === 'user' ? 'user' : 'robot'}`}></i>
+                      </div>
+                      <div className={`message-content`}>
+                        {msg.content}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-            <div ref={messagesEndRef} />
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+            <div className="chat-input">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder="Type your message..."
+              />
+              <input
+                type="file"
+                id="imageInput"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+              />
+              <button className="camera-button" onClick={() => document.getElementById('imageInput')?.click()}>
+                <i className="fas fa-camera"></i>
+              </button>
+              <button className="voice-button" onClick={toggleVoiceInput}>
+                <i className={`fas fa-microphone${isRecording ? '-slash' : ''}`}></i>
+              </button>
+              <button onClick={() => sendMessage()} className="send-button">
+                <i className="fas fa-paper-plane"></i>
+              </button>
+            </div>
           </div>
-          <div className="chat-input">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="Type your message..."
-            />
-            <input
-              type="file"
-              id="imageInput"
-              accept="image/*"
-              capture="environment"
-              onChange={handleImageUpload}
-              style={{ display: 'none' }}
-            />
-            <button className="camera-button" onClick={() => document.getElementById('imageInput')?.click()}>
-              <i className="fas fa-camera"></i>
-            </button>
-            <button className="voice-button" onClick={toggleVoiceInput}>
-              <i className={`fas fa-microphone${isRecording ? '-slash' : ''}`}></i>
-            </button>
-            <button onClick={() => sendMessage()} className="send-button">
-              <i className="fas fa-paper-plane"></i>
-            </button>
+          
+          <div className="nav-buttons">
+            <div className="nav-item">
+              <button className="nav-button" onClick={showHIPAAPrompt}>
+                <i className="fas fa-shield-alt"></i>
+              </button>
+              <span className="nav-label">HIPAA</span>
+            </div>
+            <div className="nav-item">
+              <button className="nav-button" onClick={showConfigPrompt}>
+                <i className="fas fa-cog"></i>
+              </button>
+              <span className="nav-label">Config</span>
+            </div>
+            <div className="nav-item">
+              <button className="nav-button">
+                <i className="fas fa-bell"></i>
+              </button>
+              <span className="nav-label">Alerts</span>
+            </div>
+            <div className="nav-item">
+              <button className="nav-button" onClick={navigateToSSOLogin}>
+                <i className="fas fa-sign-in-alt"></i>
+              </button>
+              <span className="nav-label">SSO Login</span>
+            </div>
           </div>
         </div>
-        
-        <div className="nav-buttons">
-          <div className="nav-item">
-            <button className="nav-button" onClick={showHIPAAPrompt}>
-              <i className="fas fa-shield-alt"></i>
-            </button>
-            <span className="nav-label">HIPAA</span>
-          </div>
-          <div className="nav-item">
-            <button className="nav-button" onClick={showConfigPrompt}>
-              <i className="fas fa-cog"></i>
-            </button>
-            <span className="nav-label">Config</span>
-          </div>
-          <div className="nav-item">
-            <button className="nav-button">
-              <i className="fas fa-bell"></i>
-            </button>
-            <span className="nav-label">Alerts</span>
-          </div>
-        </div>
-      </div>
-
+      )}
       <div id="hipaaModal" className="modal">
         <div className="modal-content">
           <h2>HIPAA Records Access</h2>
