@@ -1,11 +1,12 @@
 import { get } from './api';
+import API_CONFIG from '../config';
 
 interface LoginStatusResponse {
   logged_in: boolean;
   user_id?: string;
 }
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 export async function checkLoginStatus() {
   const response = await get<LoginStatusResponse>(`${API_BASE_URL}/loginstatus`, true);

@@ -11,9 +11,6 @@ export async function get<T>(url: string, includeCredentials = false): Promise<A
     const options: RequestInit = {
       method: 'GET',
       credentials: "include",
-      headers: {
-        'Content-Type': 'application/json',
-      },
     };
     
     if (includeCredentials) {

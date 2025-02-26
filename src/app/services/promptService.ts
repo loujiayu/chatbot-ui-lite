@@ -1,11 +1,12 @@
 import { get, post } from './api';
 import useAuthStore from '../store/useAuthStore';
+import API_CONFIG from '../config';
 
 interface PromptResponse {
   content: string;
 }
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 const DEFAULT_USER_TYPE = 'patient';
 const DEFAULT_PROMPT_BLOB = 'system_instruction.txt';
 
