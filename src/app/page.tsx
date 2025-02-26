@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import SSOLogin from './SSOLogin';
+import ChatContainer from './components/ChatContainer';
+import NavButtons from './components/NavButtons';
 
 const SYSTEM_PROMPT = `You are Vicki, a friendly and professional healthcare assistant. Your role is to:
 - Help users discuss their health concerns
@@ -31,15 +33,13 @@ export default function Home() {
     content: "Hello! Its Vicki, what brings you in today?"
   }]);
   const [notification, setNotification] = useState<Notification | null>(null);
-
   const [inputValue, setInputValue] = useState('');
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [instruction, setInstruction] = useState("");
-  const [showSSOLogin, setShowSSOLogin] = useState(true);
+  const [showSSOLogin, setShowSSOLogin] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,12 +60,9 @@ export default function Home() {
     const loadPrompt = async () => {
       try {
         const prompt = await fetchDefaultPrompt();
-        // setSystemPrompt(prompt);
-        // Use the system prompt as the initial message
         setInstruction(prompt)
       } catch (error) {
         console.error('Error loading default prompt:', error);
-        // Add a fallback message if prompt loading fails
       } finally {
         setIsLoadingPrompt(false);
       }
@@ -93,45 +90,8 @@ export default function Home() {
     }
   }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const toggleVoiceInput = () => {
-    if (recognition) {
-      if (isRecording) {
-        recognition.stop();
-        setIsRecording(false);
-      } else {
-        recognition.start();
-        setIsRecording(true);
-      }
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        setMessages(prev => [...prev, 
-          { type: 'user', content: imageUrl, isImage: true },
-          { type: 'assistant', content: 'I received your image. How can I help you with this?' }
-        ]);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-
   const sendMessage = async (text: string = inputValue) => {
     if (text.trim()) {
-      // Add user message immediately
       const updatedMessages = [
         ...messages,
         { type: 'user', content: text }
@@ -157,14 +117,12 @@ export default function Home() {
 
         const data = await response.json();
         
-        // Add assistant response
         setMessages(prev => [...prev, { 
           type: 'assistant', 
           content: data.message || "I understand. Please tell me more about how you're feeling."
         }]);
       } catch (error) {
         console.error('Error sending message:', error);
-        // Add fallback response in case of error
         setMessages(prev => [...prev, { 
           type: 'assistant', 
           content: "I apologize, but I'm having trouble connecting right now. Please try again."
@@ -225,17 +183,6 @@ export default function Home() {
         throw new Error('Failed to save prompt');
       }
 
-      // setMessages(prev => {
-      //   const updatedMessages = [...prev];
-      //   if (updatedMessages.length > 0) {
-      //     updatedMessages[0] = {
-      //       type: 'assistant',
-      //       content: systemPrompt
-      //     };
-      //   }
-      //   return updatedMessages;
-      // });
-
       showNotification('Configuration saved successfully.', 'success');
       if (modal) modal.style.display = 'none';
     } catch (error) {
@@ -243,6 +190,33 @@ export default function Home() {
       showNotification('Failed to save configuration. Please try again.', 'error');
     } finally {
       setIsSavingPrompt(false);
+    }
+  };
+
+  const toggleVoiceInput = () => {
+    if (recognition) {
+      if (isRecording) {
+        recognition.stop();
+        setIsRecording(false);
+      } else {
+        recognition.start();
+        setIsRecording(true);
+      }
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        setMessages(prev => [...prev, 
+          { type: 'user', content: imageUrl, isImage: true },
+          { type: 'assistant', content: 'I received your image. How can I help you with this?' }
+        ]);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -260,89 +234,27 @@ export default function Home() {
             <i className="fas fa-heartbeat" style={{ color: 'white', fontSize: '30px' }}></i>
           </div>
           
-          <div className="chat-container">
-            <div className="chat-messages" id="chatMessages">
-              {isLoadingPrompt ? (
-                <div className="text-white text-center space-y-4">
-                  <div className="loading-spinner" />
-                  <p>Loading prompt...</p>
-                </div>
-              ) : (
-                messages.map((msg, index) => (
-                  <div key={index} className={`message ${msg.type}`}>
-                    <div className="message-wrapper">
-                      <div className="message-icon">
-                        <i className={`fas fa-${msg.type === 'user' ? 'user' : 'robot'}`}></i>
-                      </div>
-                      <div className={`message-content`}>
-                        {msg.content}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-            <div className="chat-input">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Type your message..."
-              />
-              <input
-                type="file"
-                id="imageInput"
-                accept="image/*"
-                capture="environment"
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-              />
-              <button className="camera-button" onClick={() => document.getElementById('imageInput')?.click()}>
-                <i className="fas fa-camera"></i>
-              </button>
-              <button className="voice-button" onClick={toggleVoiceInput}>
-                <i className={`fas fa-microphone${isRecording ? '-slash' : ''}`}></i>
-              </button>
-              <button onClick={() => sendMessage()} className="send-button">
-                <i className="fas fa-paper-plane"></i>
-              </button>
-            </div>
-          </div>
+          <ChatContainer
+            messages={messages}
+            isLoadingPrompt={isLoadingPrompt}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            sendMessage={sendMessage}
+            handleImageUpload={handleImageUpload}
+            toggleVoiceInput={toggleVoiceInput}
+            isRecording={isRecording}
+          />
           
-          <div className="nav-buttons">
-            <div className="nav-item">
-              <button className="nav-button" onClick={showHIPAAPrompt}>
-                <i className="fas fa-shield-alt"></i>
-              </button>
-              <span className="nav-label">HIPAA</span>
-            </div>
-            <div className="nav-item">
-              <button className="nav-button" onClick={showConfigPrompt}>
-                <i className="fas fa-cog"></i>
-              </button>
-              <span className="nav-label">Config</span>
-            </div>
-            <div className="nav-item">
-              <button className="nav-button">
-                <i className="fas fa-bell"></i>
-              </button>
-              <span className="nav-label">Alerts</span>
-            </div>
-            <div className="nav-item">
-              <button className="nav-button" onClick={navigateToSSOLogin}>
-                <i className="fas fa-sign-in-alt"></i>
-              </button>
-              <span className="nav-label">SSO Login</span>
-            </div>
-          </div>
+          <NavButtons
+            showHIPAAPrompt={showHIPAAPrompt}
+            showConfigPrompt={showConfigPrompt}
+            navigateToSSOLogin={navigateToSSOLogin}
+          />
         </div>
       )}
       <div id="hipaaModal" className="modal">
         <div className="modal-content">
           <h2>HIPAA Records Access</h2>
-          {/* <p>Would you like to grant access to your HIPAA-compliant Electronic Health Records (EHR) and Electronic Medical Records (EMR)?</p> */}
           <p className="privacy-note">Your privacy is protected under HIPAA regulations.</p>
           <div className="modal-buttons">
             <button onClick={() => handleHIPAAPermission(true)} className="allow-btn">Allow Access</button>
