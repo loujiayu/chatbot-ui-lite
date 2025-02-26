@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import useAuthStore from './store/useAuthStore';
 
 const SSOLogin = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, setIsLoggedIn, setShowSSOLogin } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -23,6 +24,11 @@ const SSOLogin = () => {
 
         const data = await response.json();
         setIsLoggedIn(data.logged_in);
+        
+        // If the user is logged in, hide the login screen
+        if (data.logged_in) {
+          setShowSSOLogin(false);
+        }
       } catch (error) {
         console.error('Error checking login status:', error);
       } finally {
@@ -31,7 +37,7 @@ const SSOLogin = () => {
     };
 
     checkLoginStatus();
-  }, []);
+  }, [setIsLoggedIn, setShowSSOLogin]);
 
   const origin = window.location.origin;
   const googleSSOUrl = `http://localhost:5000/login/google/patient?cb=${encodeURIComponent(origin)}`;

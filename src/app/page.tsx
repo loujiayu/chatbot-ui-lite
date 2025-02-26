@@ -4,14 +4,7 @@ import { useState, useEffect } from 'react';
 import SSOLogin from './SSOLogin';
 import ChatContainer from './components/ChatContainer';
 import NavButtons from './components/NavButtons';
-
-const SYSTEM_PROMPT = `You are Vicki, a friendly and professional healthcare assistant. Your role is to:
-- Help users discuss their health concerns
-- Provide general health information
-- Guide users to appropriate medical resources
-- Maintain a compassionate and supportive tone
-- Never provide medical diagnosis or treatment advice
-- Encourage users to seek professional medical help when needed`;
+import useAuthStore from './store/useAuthStore';
 
 const fetchDefaultPrompt = () => {
   return new Promise<string>(async (resolve) => {
@@ -28,6 +21,7 @@ interface Notification {
 }
 
 export default function Home() {
+  const { showSSOLogin, setShowSSOLogin } = useAuthStore();
   const [messages, setMessages] = useState([{
     type: 'assistant',
     content: "Hello! Its Vicki, what brings you in today?"
@@ -39,7 +33,6 @@ export default function Home() {
   const [recognition, setRecognition] = useState<any>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [instruction, setInstruction] = useState("");
-  const [showSSOLogin, setShowSSOLogin] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
