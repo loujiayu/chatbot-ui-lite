@@ -42,18 +42,12 @@ export async function savePrompt(prompt: string, userType = DEFAULT_USER_TYPE, p
     };
   }
   
-  const url = `${API_BASE_URL}/prompt/${userId}`;
-  const response = await post<{}, { 
-    user_type: string; 
-    prompt_blob: string;
-    prompt: string;
-  }>(
+  // Include user_type and prompt_blob as URL parameters instead of in the body
+  const url = `${API_BASE_URL}/prompt/${userId}?user_type=${encodeURIComponent(userType)}&prompt_blob=${encodeURIComponent(promptBlob)}`;
+  
+  const response = await post<{}, { prompt: string }>(
     url,
-    { 
-      user_type: userType, 
-      prompt_blob: promptBlob,
-      prompt 
-    }
+    { prompt }
   );
   
   return {

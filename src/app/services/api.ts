@@ -10,6 +10,7 @@ export async function get<T>(url: string, includeCredentials = false): Promise<A
   try {
     const options: RequestInit = {
       method: 'GET',
+      credentials: "include",
       headers: {
         'Content-Type': 'application/json',
       },
@@ -49,6 +50,7 @@ export async function post<T, U = any>(url: string, body: U): Promise<ApiRespons
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: "include",
       body: JSON.stringify(body),
     });
     
