@@ -3,6 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { sendChatMessage } from './services/chatService';
 import { fetchPrompt, savePrompt } from './services/promptService';
+import SSOLogin from './SSOLogin';
+import useAuthStore from './store/useAuthStore';
+import NavButtons from './components/NavButtons';
+import ChatContainer from './components/ChatContainer';
 
 const SYSTEM_PROMPT = `You are Vicki, a friendly and professional healthcare assistant. Your role is to:
 - Help users discuss their health concerns
@@ -18,6 +22,7 @@ interface Notification {
 }
 
 export default function Home() {
+  const { showSSOLogin, setShowSSOLogin, userId } = useAuthStore();
   const [messages, setMessages] = useState([{
     type: 'assistant',
     content: "Hello! Its Vicki, what brings you in today?"
@@ -48,23 +53,27 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const loadPrompt = async () => {
-      try {
-        const { success, content, error } = await fetchPrompt();
-        
-        if (success) {
-          setInstruction(content);
-        } else {
-          console.error('Error loading default prompt:', error);
-        }
-      } catch (error) {
-        console.error('Error loading default prompt:', error);
-      } finally {
-        setIsLoadingPrompt(false);
+    if (userId) {
+      loadPrompt();
+    }
+  }, [userId]);
+
+  const loadPrompt = async () => {
+    setIsLoadingPrompt(true);
+    try {
+      const { success, content, error } = await fetchPrompt();
+      
+      if (success) {
+        setInstruction(content);
+      } else {
+        console.error('Error loading prompt:', error);
       }
-    };
-    loadPrompt();
-  }, []);
+    } catch (error) {
+      console.error('Error loading prompt:', error);
+    } finally {
+      setIsLoadingPrompt(false);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
@@ -212,85 +221,38 @@ export default function Home() {
     }
   };
 
+  const navigateToSSOLogin = () => {
+    setShowSSOLogin(true);
+  };
+
   return (
     <div className="phone-container">
-      <div className="main-content">
-        <div className="health-icon">
-          <i className="fas fa-heartbeat" style={{ color: 'white', fontSize: '30px' }}></i>
+      {showSSOLogin ? (
+        <SSOLogin />
+      ) : (
+        <div className="main-content">
+          <div className="health-icon">
+            <i className="fas fa-heartbeat" style={{ color: 'white', fontSize: '30px' }}></i>
+          </div>
+          
+          <ChatContainer
+            messages={messages}
+            isLoadingPrompt={isLoadingPrompt}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            sendMessage={sendMessage}
+            handleImageUpload={handleImageUpload}
+            toggleVoiceInput={toggleVoiceInput}
+            isRecording={isRecording}
+          />
+          
+          <NavButtons
+            showHIPAAPrompt={showHIPAAPrompt}
+            showConfigPrompt={showConfigPrompt}
+            navigateToSSOLogin={navigateToSSOLogin}
+          />
         </div>
-        
-        <div className="chat-container">
-          <div className="chat-messages" id="chatMessages">
-            {isLoadingPrompt ? (
-              <div className="text-white text-center space-y-4">
-                <div className="loading-spinner" />
-                <p>Loading prompt...</p>
-              </div>
-            ) : (
-              messages.map((msg, index) => (
-                <div key={index} className={`message ${msg.type}`}>
-                  <div className="message-wrapper">
-                    <div className="message-icon">
-                      <i className={`fas fa-${msg.type === 'user' ? 'user' : 'robot'}`}></i>
-                    </div>
-                    <div className={`message-content`}>
-                      {msg.content}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-          <div className="chat-input">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="Type your message..."
-            />
-            <input
-              type="file"
-              id="imageInput"
-              accept="image/*"
-              capture="environment"
-              onChange={handleImageUpload}
-              style={{ display: 'none' }}
-            />
-            <button className="camera-button" onClick={() => document.getElementById('imageInput')?.click()}>
-              <i className="fas fa-camera"></i>
-            </button>
-            <button className="voice-button" onClick={toggleVoiceInput}>
-              <i className={`fas fa-microphone${isRecording ? '-slash' : ''}`}></i>
-            </button>
-            <button onClick={() => sendMessage()} className="send-button">
-              <i className="fas fa-paper-plane"></i>
-            </button>
-          </div>
-        </div>
-        
-        <div className="nav-buttons">
-          <div className="nav-item">
-            <button className="nav-button" onClick={showHIPAAPrompt}>
-              <i className="fas fa-shield-alt"></i>
-            </button>
-            <span className="nav-label">HIPAA</span>
-          </div>
-          <div className="nav-item">
-            <button className="nav-button" onClick={showConfigPrompt}>
-              <i className="fas fa-cog"></i>
-            </button>
-            <span className="nav-label">Config</span>
-          </div>
-          <div className="nav-item">
-            <button className="nav-button">
-              <i className="fas fa-bell"></i>
-            </button>
-            <span className="nav-label">Alerts</span>
-          </div>
-        </div>
-      </div>
+      )}
 
       <div id="hipaaModal" className="modal">
         <div className="modal-content">
