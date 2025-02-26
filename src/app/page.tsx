@@ -7,6 +7,7 @@ import SSOLogin from './SSOLogin';
 import useAuthStore from './store/useAuthStore';
 import NavButtons from './components/NavButtons';
 import ChatContainer from './components/ChatContainer';
+import { logout } from './services/authService';
 
 const SYSTEM_PROMPT = `You are Vicki, a friendly and professional healthcare assistant. Your role is to:
 - Help users discuss their health concerns
@@ -221,8 +222,22 @@ export default function Home() {
     }
   };
 
-  const navigateToSSOLogin = () => {
-    setShowSSOLogin(true);
+  const handleLogout = async () => {
+    try {
+      const { success, error } = await logout();
+      
+      if (success) {
+        // Reset auth state
+        useAuthStore.getState().logout();
+        showNotification('You have been logged out successfully.', 'success');
+      } else {
+        console.error('Logout error:', error);
+        showNotification('Failed to logout. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      showNotification('Failed to logout. Please try again.', 'error');
+    }
   };
 
   return (
@@ -249,7 +264,7 @@ export default function Home() {
           <NavButtons
             showHIPAAPrompt={showHIPAAPrompt}
             showConfigPrompt={showConfigPrompt}
-            navigateToSSOLogin={navigateToSSOLogin}
+            handleLogout={handleLogout}
           />
         </div>
       )}

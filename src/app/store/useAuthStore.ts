@@ -7,6 +7,7 @@ interface AuthState {
   setIsLoggedIn: (value: boolean) => void;
   setShowSSOLogin: (value: boolean) => void;
   setUserId: (userId: string | null) => void;
+  logout: () => void;
 }
 
 const useAuthStore = create<AuthState>((set) => ({
@@ -16,6 +17,11 @@ const useAuthStore = create<AuthState>((set) => ({
   setIsLoggedIn: (isLoggedIn) => set({ isLoggedIn }),
   setShowSSOLogin: (showSSOLogin) => set({ showSSOLogin }),
   setUserId: (userId) => set({ userId }),
+  logout: () => set({ 
+    isLoggedIn: false, 
+    showSSOLogin: true,
+    userId: null
+  }),
 }));
 
 export default useAuthStore;

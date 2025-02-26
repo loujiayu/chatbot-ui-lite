@@ -3,13 +3,13 @@ import React from 'react';
 interface NavButtonsProps {
   showHIPAAPrompt: () => void;
   showConfigPrompt: () => void;
-  navigateToSSOLogin: () => void;
+  handleLogout: () => void;
 }
 
 const NavButtons: React.FC<NavButtonsProps> = ({
   showHIPAAPrompt,
   showConfigPrompt,
-  navigateToSSOLogin,
+  handleLogout,
 }) => {
   return (
     <div className="nav-buttons">
@@ -32,10 +32,10 @@ const NavButtons: React.FC<NavButtonsProps> = ({
         <span className="nav-label">Alerts</span>
       </div>
       <div className="nav-item">
-        <button className="nav-button" onClick={navigateToSSOLogin}>
-          <i className="fas fa-sign-in-alt"></i>
+        <button className="nav-button" onClick={handleLogout}>
+          <i className="fas fa-sign-out-alt"></i>
         </button>
-        <span className="nav-label">SSO Login</span>
+        <span className="nav-label">Logout</span>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { get } from './api';
+import { get, post } from './api';
 import API_CONFIG from '../config';
 
 interface LoginStatusResponse {
@@ -19,4 +19,13 @@ export async function checkLoginStatus() {
 
 export function getGoogleLoginUrl(callbackUrl: string) {
   return `${API_BASE_URL}/login/google/patient?cb=${encodeURIComponent(callbackUrl)}`;
+}
+
+export async function logout() {
+  const response = await get<{ success: boolean }>(`${API_CONFIG.BASE_URL}/logout`);
+  
+  return {
+    success: response.success,
+    error: response.error
+  };
 }
