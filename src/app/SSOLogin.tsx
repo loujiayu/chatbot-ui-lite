@@ -1,33 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import useAuthStore from './store/useAuthStore';
+import { checkLoginStatus, getGoogleLoginUrl } from './services/authService';
 
 const SSOLogin = () => {
-  const { isLoggedIn, setIsLoggedIn, setShowSSOLogin } = useAuthStore();
+  const { isLoggedIn, setIsLoggedIn, setShowSSOLogin, setUserId } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
+    const verifyLoginStatus = async () => {
       try {
-        const response = await fetch('http://localhost:5000/loginstatus', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (!response.ok) {
-          if (response.status == 401) {
-            setIsLoggedIn(false);
-            setIsLoading(false);
-            return;
-          }
-          throw new Error('Failed to check login status');
+        const { isLoggedIn: loggedIn, userId, error } = await checkLoginStatus();
+        
+        setIsLoggedIn(loggedIn);
+        if (userId) {
+          setUserId(userId);
         }
-
-        const data = await response.json();
-        setIsLoggedIn(data.logged_in);
         
         // If the user is logged in, hide the login screen
-        if (data.logged_in) {
+        if (loggedIn) {
           setShowSSOLogin(false);
+        }
+        
+        if (error) {
+          console.error('Login status check error:', error);
         }
       } catch (error) {
         console.error('Error checking login status:', error);
@@ -36,11 +31,11 @@ const SSOLogin = () => {
       }
     };
 
-    checkLoginStatus();
-  }, [setIsLoggedIn, setShowSSOLogin]);
+    verifyLoginStatus();
+  }, [setIsLoggedIn, setShowSSOLogin, setUserId]);
 
   const origin = window.location.origin;
-  const googleSSOUrl = `http://localhost:5000/login/google/patient?cb=${encodeURIComponent(origin)}`;
+  const googleSSOUrl = getGoogleLoginUrl(origin);
 
   return (
     <div className="sso-login-container">
