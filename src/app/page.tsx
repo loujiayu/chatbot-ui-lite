@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-
+import { sendChatMessage } from './services/chatService';
+import { fetchPrompt, savePrompt } from './services/promptService';
 
 const SYSTEM_PROMPT = `You are Vicki, a friendly and professional healthcare assistant. Your role is to:
 - Help users discuss their health concerns
@@ -10,15 +11,6 @@ const SYSTEM_PROMPT = `You are Vicki, a friendly and professional healthcare ass
 - Maintain a compassionate and supportive tone
 - Never provide medical diagnosis or treatment advice
 - Encourage users to seek professional medical help when needed`;
-
-const fetchDefaultPrompt = () => {
-  return new Promise<string>(async (resolve) => {
-    const response = await fetch('https://prompts-85352025976.us-central1.run.app?key=patient');
-    if (!response.ok) throw new Error('Failed to fetch prompt');
-    const data = await response.text();
-    resolve(JSON.parse(data).content)
-  });
-};
 
 interface Notification {
   message: string;
@@ -58,13 +50,15 @@ export default function Home() {
   useEffect(() => {
     const loadPrompt = async () => {
       try {
-        const prompt = await fetchDefaultPrompt();
-        // setSystemPrompt(prompt);
-        // Use the system prompt as the initial message
-        setInstruction(prompt)
+        const { success, content, error } = await fetchPrompt();
+        
+        if (success) {
+          setInstruction(content);
+        } else {
+          console.error('Error loading default prompt:', error);
+        }
       } catch (error) {
         console.error('Error loading default prompt:', error);
-        // Add a fallback message if prompt loading fails
       } finally {
         setIsLoadingPrompt(false);
       }
@@ -130,7 +124,6 @@ export default function Home() {
 
   const sendMessage = async (text: string = inputValue) => {
     if (text.trim()) {
-      // Add user message immediately
       const updatedMessages = [
         ...messages,
         { type: 'user', content: text }
@@ -139,31 +132,22 @@ export default function Home() {
       setInputValue('');
 
       try {
-        const response = await fetch('https://doctormt-85352025976.us-central1.run.app?ispatient=true', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            messages: updatedMessages,
-            instruction
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
+        const { success, message, error } = await sendChatMessage(updatedMessages, instruction);
         
-        // Add assistant response
-        setMessages(prev => [...prev, { 
-          type: 'assistant', 
-          content: data.message || "I understand. Please tell me more about how you're feeling."
-        }]);
+        if (success) {
+          setMessages(prev => [...prev, { 
+            type: 'assistant', 
+            content: message
+          }]);
+        } else {
+          console.error('Error sending message:', error);
+          setMessages(prev => [...prev, { 
+            type: 'assistant', 
+            content: "I apologize, but I'm having trouble connecting right now. Please try again."
+          }]);
+        }
       } catch (error) {
         console.error('Error sending message:', error);
-        // Add fallback response in case of error
         setMessages(prev => [...prev, { 
           type: 'assistant', 
           content: "I apologize, but I'm having trouble connecting right now. Please try again."
@@ -210,32 +194,15 @@ export default function Home() {
     setIsSavingPrompt(true);
 
     try {
-      const response = await fetch('https://prompts-85352025976.us-central1.run.app?key=patient', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: instruction
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save prompt');
+      const { success, error } = await savePrompt(instruction);
+      
+      if (success) {
+        showNotification('Configuration saved successfully.', 'success');
+      } else {
+        console.error('Error saving prompt:', error);
+        showNotification('Failed to save configuration. Please try again.', 'error');
       }
-
-      // setMessages(prev => {
-      //   const updatedMessages = [...prev];
-      //   if (updatedMessages.length > 0) {
-      //     updatedMessages[0] = {
-      //       type: 'assistant',
-      //       content: systemPrompt
-      //     };
-      //   }
-      //   return updatedMessages;
-      // });
-
-      showNotification('Configuration saved successfully.', 'success');
+      
       if (modal) modal.style.display = 'none';
     } catch (error) {
       console.error('Error saving prompt:', error);
