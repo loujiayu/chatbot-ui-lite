@@ -34,7 +34,12 @@ const SSOLogin = () => {
     verifyLoginStatus();
   }, [setIsLoggedIn, setShowSSOLogin, setUserId]);
 
-  const origin = window.location.origin;
+  let origin;
+  if (typeof window !== "undefined") {
+    origin = window.location.origin;
+  } else {
+    origin = "http://localhost:3000";
+  }
   const googleSSOUrl = getGoogleLoginUrl(origin);
 
   return (
