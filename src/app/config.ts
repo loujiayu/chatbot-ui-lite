@@ -1,6 +1,6 @@
 // Configuration values for different environments
 
-const isProd = true;
+const isProd = process.env.NODE_ENV === 'production';
 
 export const API_CONFIG = {
   BASE_URL: isProd 
