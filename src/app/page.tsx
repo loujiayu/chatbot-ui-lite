@@ -1,8 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { sendChatMessage } from './services/chatService';
-import { fetchPrompt, savePrompt } from './services/promptService';
+import { sendChatMessage, Message } from './services/chatService';
+import { 
+  fetchPrompt, 
+  savePrompt, 
+  fetchChatHistory,
+  saveChatHistory 
+} from './services/promptService';
 import SSOLogin from './SSOLogin';
 import useAuthStore from './store/useAuthStore';
 import NavButtons from './components/NavButtons';
@@ -16,10 +21,7 @@ interface Notification {
 
 export default function Home() {
   const { showSSOLogin, setShowSSOLogin, userId } = useAuthStore();
-  const [messages, setMessages] = useState([{
-    type: 'assistant',
-    content: "Hello! Its Vicki, what brings you in today?"
-  }]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [notification, setNotification] = useState<Notification | null>(null);
 
   const [inputValue, setInputValue] = useState('');
@@ -48,6 +50,7 @@ export default function Home() {
   useEffect(() => {
     if (userId) {
       loadPrompt();
+      loadChatHistory();
     }
   }, [userId]);
 
@@ -63,6 +66,24 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error loading prompt:', error);
+    } finally {
+      setIsLoadingPrompt(false);
+    }
+  };
+
+  const loadChatHistory = async () => {
+    setIsLoadingPrompt(true); // We can reuse the same loading state
+    try {
+      const { success, messages: chatHistory, error } = await fetchChatHistory();
+      
+      if (success && chatHistory.length > 0) {
+        setMessages(chatHistory);
+      } else if (error) {
+        console.error('Error loading chat history:', error);
+      }
+      // If there's no chat history, we'll keep the default welcome message
+    } catch (error) {
+      console.error('Error loading chat history:', error);
     } finally {
       setIsLoadingPrompt(false);
     }
@@ -137,10 +158,16 @@ export default function Home() {
         const { success, message, error } = await sendChatMessage(updatedMessages, instruction);
         
         if (success) {
-          setMessages(prev => [...prev, { 
-            type: 'assistant', 
-            content: message
-          }]);
+          const newMessages = [
+            ...updatedMessages,
+            { type: 'assistant', content: message }
+          ];
+          setMessages(newMessages);
+          
+          // Save the updated chat history
+          saveChatHistory(newMessages).catch(err => {
+            console.error('Error saving chat history:', err);
+          });
         } else {
           console.error('Error sending message:', error);
           setMessages(prev => [...prev, { 

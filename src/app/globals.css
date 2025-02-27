@@ -255,23 +255,6 @@ body {
   @apply text-red-400;
 }
 
-.sso-login-container {
-  @apply flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-background to-gray-900 text-white;
-}
-
-.sso-login-button {
-  @apply px-6 py-3 rounded-xl cursor-pointer font-semibold transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-3;
-}
-
-.sso-login-button.google {
-  background: linear-gradient(135deg, #4285F4, #357ABD);
-  @apply text-white;
-}
-
-.sso-login-button.google i {
-  @apply text-lg;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;

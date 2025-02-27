@@ -2,7 +2,7 @@ import { post } from './api';
 import API_CONFIG from '../config';
 import useAuthStore from '../store/useAuthStore';
 
-interface Message {
+export interface Message {
   type: string;
   content: string;
   isImage?: boolean;
