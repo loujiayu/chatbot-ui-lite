@@ -4,10 +4,12 @@ import { useState, useRef, useEffect } from 'react';
 import { sendChatMessage, Message } from './services/chatService';
 import { 
   fetchPrompt, 
-  savePrompt, 
+  savePrompt
+} from './services/promptService';
+import { 
   fetchChatHistory,
   saveChatHistory 
-} from './services/promptService';
+} from './services/chatHistoryService';
 import SSOLogin from './SSOLogin';
 import useAuthStore from './store/useAuthStore';
 import NavButtons from './components/NavButtons';
