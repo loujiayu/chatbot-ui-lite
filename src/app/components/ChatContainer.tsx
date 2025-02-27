@@ -6,6 +6,7 @@ interface ChatContainerProps {
   inputValue: string;
   setInputValue: (value: string) => void;
   sendMessage: (text?: string) => void;
+  disabled?: boolean; // Add this prop
 }
 
 const ChatContainer: React.FC<ChatContainerProps> = ({
@@ -14,6 +15,7 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   inputValue,
   setInputValue,
   sendMessage,
+  disabled = false // Default to false
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -28,6 +30,18 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
   return (
     <div className="chat-container">
       <div className="chat-messages" id="chatMessages">
+        {disabled && (
+          <div className="loading-history-container">
+            <div className="loading-spinner"></div>
+          </div>
+        )}
+        
+        {!disabled && messages.length === 0 && (
+          <div className="empty-chat-message">
+            <p>No messages yet. Start a conversation!</p>
+          </div>
+        )}
+        
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.type}`}>
             <div className="message-wrapper">
@@ -48,9 +62,10 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder="Type your message..."
+          placeholder={disabled ? "Loading history..." : "Type your message..."}
+          disabled={disabled}
         />
-        <button onClick={() => sendMessage()} className="send-button">
+        <button onClick={() => sendMessage()} className="send-button" disabled={disabled}>
           <i className="fas fa-paper-plane"></i>
         </button>
       </div>

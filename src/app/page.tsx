@@ -28,6 +28,7 @@ export default function Home() {
 
   const [inputValue, setInputValue] = useState('');
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
+  const [isLoadingChatHistory, setIsLoadingChatHistory] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   const [instruction, setInstruction] = useState("");
@@ -72,7 +73,7 @@ export default function Home() {
   };
 
   const loadChatHistory = async () => {
-    setIsLoadingPrompt(true); // We can reuse the same loading state
+    setIsLoadingChatHistory(true);
     try {
       const { success, messages: chatHistory, error } = await fetchChatHistory();
       
@@ -85,7 +86,7 @@ export default function Home() {
     } catch (error) {
       console.error('Error loading chat history:', error);
     } finally {
-      setIsLoadingPrompt(false);
+      setIsLoadingChatHistory(false);
     }
   };
 
@@ -98,7 +99,7 @@ export default function Home() {
   }, [messages]);
 
   const sendMessage = async (text: string = inputValue) => {
-    if (text.trim()) {
+    if (text.trim() && !isLoadingChatHistory) {
       const updatedMessages = [
         ...messages,
         { type: 'user', content: text }
@@ -223,16 +224,18 @@ export default function Home() {
           
           <ChatContainer
             messages={messages}
-            isLoadingPrompt={isLoadingPrompt}
+            isLoadingPrompt={isLoadingPrompt || isLoadingChatHistory}
             inputValue={inputValue}
             setInputValue={setInputValue}
             sendMessage={sendMessage}
+            disabled={isLoadingChatHistory}
           />
           
           <NavButtons
             showHIPAAPrompt={showHIPAAPrompt}
             showConfigPrompt={showConfigPrompt}
             handleLogout={handleLogout}
+            disabled={isLoadingChatHistory}
           />
         </div>
       )}
