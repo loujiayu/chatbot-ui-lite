@@ -21,7 +21,7 @@ export async function fetchChatHistory() {
     };
   }
   
-  const url = `${API_BASE_URL}/chathistory/${userId}?user_type=${encodeURIComponent(DEFAULT_USER_TYPE)}`;
+  const url = `${API_BASE_URL}/chat/${userId}/history?user_type=${encodeURIComponent(DEFAULT_USER_TYPE)}`;
   const response = await get<ChatHistoryResponse>(url, true);
   
   try {
@@ -61,7 +61,7 @@ export async function saveChatHistory(messages: Array<{ type: string; content: s
     };
   }
   
-  const url = `${API_BASE_URL}/chathistory/${userId}?user_type=${encodeURIComponent(DEFAULT_USER_TYPE)}`;
+  const url = `${API_BASE_URL}/chat/${userId}/history?user_type=${encodeURIComponent(DEFAULT_USER_TYPE)}`;
   
   // Convert messages array to JSON string
   const messagesJson = JSON.stringify(messages);
