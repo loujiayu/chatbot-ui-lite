@@ -28,8 +28,6 @@ export default function Home() {
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isSavingPrompt, setIsSavingPrompt] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
-  const [isRecording, setIsRecording] = useState(false);
   const [instruction, setInstruction] = useState("");
 
   useEffect(() => {
@@ -89,26 +87,6 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      const recognition = new (window as any).webkitSpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      
-      recognition.onresult = (event: any) => {
-        const text = event.results[0][0].transcript;
-        setInputValue(text);
-        sendMessage(text);
-      };
-      
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-      };
-
-      setRecognition(recognition);
-    }
-  }, []);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -116,34 +94,6 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const toggleVoiceInput = () => {
-    if (recognition) {
-      if (isRecording) {
-        recognition.stop();
-        setIsRecording(false);
-      } else {
-        recognition.start();
-        setIsRecording(true);
-      }
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        setMessages(prev => [...prev, 
-          { type: 'user', content: imageUrl, isImage: true },
-          { type: 'assistant', content: 'I received your image. How can I help you with this?' }
-        ]);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
 
   const sendMessage = async (text: string = inputValue) => {
     if (text.trim()) {
@@ -275,9 +225,6 @@ export default function Home() {
             inputValue={inputValue}
             setInputValue={setInputValue}
             sendMessage={sendMessage}
-            handleImageUpload={handleImageUpload}
-            toggleVoiceInput={toggleVoiceInput}
-            isRecording={isRecording}
           />
           
           <NavButtons
