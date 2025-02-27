@@ -36,12 +36,6 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
           </div>
         )}
         
-        {!disabled && messages.length === 0 && (
-          <div className="empty-chat-message">
-            <p>No messages yet. Start a conversation!</p>
-          </div>
-        )}
-        
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.type}`}>
             <div className="message-wrapper">
