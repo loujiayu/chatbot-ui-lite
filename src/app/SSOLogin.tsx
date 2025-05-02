@@ -5,6 +5,7 @@ import { checkLoginStatus, getGoogleLoginUrl } from './services/authService';
 const SSOLogin = () => {
   const { isLoggedIn, setIsLoggedIn, setShowSSOLogin, setUserId } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     const verifyLoginStatus = async () => {
@@ -16,7 +17,6 @@ const SSOLogin = () => {
           setUserId(userId);
         }
         
-        // If the user is logged in, hide the login screen
         if (loggedIn) {
           setShowSSOLogin(false);
         }
@@ -34,6 +34,10 @@ const SSOLogin = () => {
     verifyLoginStatus();
   }, [setIsLoggedIn, setShowSSOLogin, setUserId]);
 
+  const handleLoginClick = () => {
+    setIsAnimating(true);
+  };
+
   let origin;
   if (typeof window !== "undefined") {
     origin = window.location.origin;
@@ -45,13 +49,26 @@ const SSOLogin = () => {
   return (
     <div className="sso-login-container">
       {isLoading ? (
-        <div className="loading-spinner" />
+        <>
+          <div className="loading-spinner" />
+          <p className="text-white/60">Checking login status...</p>
+        </>
       ) : isLoggedIn ? (
-        <p>You are already logged in.</p>
+        <div className="animate-fadeIn">
+          <h1 className="welcome-text">Welcome Back!</h1>
+          <p>Redirecting to your dashboard...</p>
+        </div>
       ) : (
-        <a href={googleSSOUrl} className="sso-login-button google">
-          <i className="fab fa-google"></i> Login with Google
-        </a>
+        <div className="animate-fadeIn space-y-6">
+          <a 
+            href={googleSSOUrl} 
+            className="sso-login-button" 
+            onClick={handleLoginClick}
+          >
+            <i className={`fab fa-google ${isAnimating ? 'animate-spin' : ''}`}></i>
+            {isAnimating ? 'Connecting...' : 'Login with Google'}
+          </a>
+        </div>
       )}
     </div>
   );
