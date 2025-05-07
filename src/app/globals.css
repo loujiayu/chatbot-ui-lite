@@ -289,6 +289,67 @@ body {
   @apply text-white/60 text-center mb-8 max-w-sm;
 }
 
+.note-content {
+  @apply mt-4 mb-6 p-4 rounded-xl bg-white/5 max-h-[60vh] overflow-y-auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+}
+
+.note-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.note-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.note-content::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.note-text {
+  @apply text-white/90 text-left;
+}
+
+.note-item {
+  @apply p-5 mb-4 rounded-xl bg-white/[0.07] backdrop-blur-sm;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+  transition: all 0.2s ease;
+}
+
+.note-item:last-child {
+  @apply mb-0;
+}
+
+.note-item:hover {
+  @apply bg-white/[0.09];
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.note-item .doctor-info {
+  @apply flex justify-between items-center mb-3;
+}
+
+.note-item .doctor-name {
+  @apply text-blue-400 font-medium text-base;
+  letter-spacing: 0.01em;
+}
+
+.note-item .note-date {
+  @apply text-gray-400 text-sm;
+}
+
+.note-item .note-text {
+  @apply mt-2 text-white/90;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

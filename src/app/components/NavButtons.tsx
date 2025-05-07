@@ -4,6 +4,7 @@ interface NavButtonsProps {
   showHIPAAPrompt: () => void;
   showConfigPrompt: () => void;
   handleLogout: () => void;
+  showNotesPrompt: () => void;
   disabled?: boolean; // Add this prop
 }
 
@@ -11,6 +12,7 @@ const NavButtons: React.FC<NavButtonsProps> = ({
   showHIPAAPrompt,
   showConfigPrompt,
   handleLogout,
+  showNotesPrompt,
   disabled = false // Default to false
 }) => {
   return (
@@ -28,10 +30,10 @@ const NavButtons: React.FC<NavButtonsProps> = ({
         <span className="nav-label">Config</span>
       </div>
       <div className="nav-item">
-        <button className="nav-button" disabled={disabled}>
+        <button className="nav-button" onClick={showNotesPrompt} disabled={disabled}>
           <i className="fas fa-bell"></i>
         </button>
-        <span className="nav-label">Alerts</span>
+        <span className="nav-label">Note</span>
       </div>
       <div className="nav-item">
         <button className="nav-button" onClick={handleLogout} disabled={disabled}>

@@ -15,6 +15,7 @@ import useAuthStore from './store/useAuthStore';
 import NavButtons from './components/NavButtons';
 import ChatContainer from './components/ChatContainer';
 import { logout } from './services/authService';
+import { getDoctorPatientNote, DoctorPatientNote } from './services/doctor-patient-association';
 
 interface Notification {
   message: string;
@@ -25,6 +26,8 @@ export default function Home() {
   const { showSSOLogin, setShowSSOLogin, userId } = useAuthStore();
   const [messages, setMessages] = useState<Message[]>([]);
   const [notification, setNotification] = useState<Notification | null>(null);
+  const [doctorNotes, setDoctorNotes] = useState<DoctorPatientNote[]>([]);
+  const [isLoadingNote, setIsLoadingNote] = useState(false);
 
   const [inputValue, setInputValue] = useState('');
   const [isLoadingPrompt, setIsLoadingPrompt] = useState(true);
@@ -161,6 +164,28 @@ export default function Home() {
     if (modal) modal.style.display = 'flex';
   };
 
+  const showNotesPrompt = async () => {
+    const modal = document.getElementById('notesModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      setIsLoadingNote(true);
+      try {
+        const response = await getDoctorPatientNote();
+        if (response.success) {
+          setDoctorNotes(response.notes as DoctorPatientNote[]);
+        } else {
+          console.error('Error loading notes:', response.error);
+          showNotification('Failed to load notes. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Error loading notes:', error);
+        showNotification('Failed to load notes. Please try again.', 'error');
+      } finally {
+        setIsLoadingNote(false);
+      }
+    }
+  };
+
   const handleHIPAAPermission = (granted: boolean) => {
     const modal = document.getElementById('hipaaModal');
     if (granted) {
@@ -234,6 +259,7 @@ export default function Home() {
           <NavButtons
             showHIPAAPrompt={showHIPAAPrompt}
             showConfigPrompt={showConfigPrompt}
+            showNotesPrompt={showNotesPrompt}
             handleLogout={handleLogout}
             disabled={isLoadingChatHistory}
           />
@@ -243,7 +269,6 @@ export default function Home() {
       <div id="hipaaModal" className="modal">
         <div className="modal-content">
           <h2>HIPAA Records Access</h2>
-          {/* <p>Would you like to grant access to your HIPAA-compliant Electronic Health Records (EHR) and Electronic Medical Records (EMR)?</p> */}
           <p className="privacy-note">Your privacy is protected under HIPAA regulations.</p>
           <div className="modal-buttons">
             <button onClick={() => handleHIPAAPermission(true)} className="allow-btn">Allow Access</button>
@@ -294,6 +319,50 @@ export default function Home() {
               ) : (
                 'Save Changes'
               )}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="notesModal" className="modal">
+        <div className="modal-content">
+          <h2>Doctor's Notes</h2>
+          <div className="note-content">
+            {isLoadingNote ? (
+              <div className="text-white text-center space-y-4">
+                <div className="loading-spinner" />
+                <p>Loading notes...</p>
+              </div>
+            ) : (
+              <div className="note-text">
+                {doctorNotes.length > 0 ? (
+                  doctorNotes.map((note, index) => (
+                    <div key={index} className="note-item">
+                      <div className="doctor-info">
+                        <span className="doctor-name">Dr. {note.doctorName}</span>
+                        <span className="note-date">
+                          {note.updatedAt && new Date(note.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="note-text">
+                        {note.metadata.note}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  "No notes available."
+                )}
+              </div>
+            )}
+          </div>
+          <div className="modal-buttons">
+            <button
+              onClick={() => {
+                const modal = document.getElementById('notesModal');
+                if (modal) modal.style.display = 'none';
+              }}
+              className="allow-btn"
+            >
+              Close
             </button>
           </div>
         </div>
