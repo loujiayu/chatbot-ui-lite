@@ -1,4 +1,7 @@
 import './globals.css'
+import './styles/bottom-nav.css'
+import './styles/markdown.css'
+import './styles/chat-input.css'
 import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })

@@ -1,0 +1,33 @@
+/* Bottom navigation styles */
+.bottom-nav-container {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 12px;
+  border-radius: 0 0 40px 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: 500px;
+  z-index: 10;
+}
+
+/* Adjust existing nav-buttons to work at the bottom */
+.bottom-nav-container .nav-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 0;
+}
+
+/* Make buttons smaller to fit at the bottom */
+.bottom-nav-container .nav-button {
+  width: 48px;
+  height: 48px;
+}
+
+/* Adjust chat container to account for bottom nav */
+.chat-container {
+  padding-bottom: 80px;
+  margin-bottom: 20px; /* Add space between chat container and bottom nav */
+}

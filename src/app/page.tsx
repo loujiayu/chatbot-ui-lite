@@ -244,7 +244,7 @@ export default function Home() {
       ) : (
         <div className="main-content">
           <div className="health-icon">
-            <i className="fas fa-heartbeat" style={{ color: 'white', fontSize: '30px' }}></i>
+            <i className="fas fa-heartbeat" style={{ color: 'white', fontSize: '24px' }}></i>
           </div>
           
           <ChatContainer
@@ -256,13 +256,15 @@ export default function Home() {
             disabled={isLoadingChatHistory}
           />
           
-          <NavButtons
-            showHIPAAPrompt={showHIPAAPrompt}
-            showConfigPrompt={showConfigPrompt}
-            showNotesPrompt={showNotesPrompt}
-            handleLogout={handleLogout}
-            disabled={isLoadingChatHistory}
-          />
+          <div className="bottom-nav-container">
+            <NavButtons
+              showHIPAAPrompt={showHIPAAPrompt}
+              showConfigPrompt={showConfigPrompt}
+              showNotesPrompt={showNotesPrompt}
+              handleLogout={handleLogout}
+              disabled={isLoadingChatHistory}
+            />
+          </div>
         </div>
       )}
 
