@@ -1,16 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import useAuthStore from './store/useAuthStore';
 import { checkLoginStatus, getGoogleLoginUrl } from './services/authService';
+import API_CONFIG from './config';
 
 const SSOLogin = () => {
-  const { isLoggedIn, setIsLoggedIn, setShowSSOLogin, setUserId } = useAuthStore();
+  const { isLoggedIn, setIsLoggedIn, setShowSSOLogin, setUserId, setToken, setUserRole } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // Handle token from URL hash (redirect from backend)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token=')) {
+        // Parse the hash to extract token and role
+        const accessToken = hash.match(/access_token=([^&]*)/)?.[1];
+        const tokenType = hash.match(/token_type=([^&]*)/)?.[1];
+        const role = hash.match(/role=([^&]*)/)?.[1];
+        
+        if (accessToken) {
+          // Store token in localStorage
+          localStorage.setItem('access_token', accessToken);
+          
+          // Update auth store
+          setToken(accessToken);
+          if (role) setUserRole(role);
+          setIsLoggedIn(true);
+          setShowSSOLogin(false);
+          
+          // Remove the hash from the URL
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }
+    }
+  }, [setToken, setUserRole, setIsLoggedIn, setShowSSOLogin]);
 
   useEffect(() => {
     const verifyLoginStatus = async () => {
       try {
         const { isLoggedIn: loggedIn, userId, error } = await checkLoginStatus();
+        
         
         setIsLoggedIn(loggedIn);
         if (userId) {
