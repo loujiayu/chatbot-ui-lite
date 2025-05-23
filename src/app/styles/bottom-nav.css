@@ -7,6 +7,8 @@
   background-color: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   padding: 12px;
+  padding-left: 40px;
+  padding-right: 40px;
   border-radius: 0 0 40px 40px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   width: 500px;
@@ -28,6 +30,6 @@
 
 /* Adjust chat container to account for bottom nav */
 .chat-container {
-  padding-bottom: 80px;
+  padding-bottom: 70px;
   margin-bottom: 20px; /* Add space between chat container and bottom nav */
 }

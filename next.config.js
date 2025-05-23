@@ -8,7 +8,7 @@ const nextConfig = {
   // This allows the app to be accessible from other devices on the network
   server: {
     host: '0.0.0.0',
-    port: 3000,
+    port: 3001,
   }
 };
 

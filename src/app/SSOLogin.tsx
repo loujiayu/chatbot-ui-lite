@@ -71,7 +71,7 @@ const SSOLogin = () => {
   if (typeof window !== "undefined") {
     origin = window.location.origin;
   } else {
-    origin = "http://localhost:3000";
+    origin = "http://localhost:3001";
   }
   const googleSSOUrl = getGoogleLoginUrl(origin);
 

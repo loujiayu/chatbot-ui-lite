@@ -10,19 +10,8 @@ const API_BASE_URL = API_CONFIG.BASE_URL;
 const DEFAULT_USER_TYPE = 'patient';
 const DEFAULT_PROMPT_BLOB = 'system_instruction.txt';
 
-export async function fetchPrompt(userType = DEFAULT_USER_TYPE, promptBlob = DEFAULT_PROMPT_BLOB) {
-  // Get the current user ID from the auth store
-  const userId = useAuthStore.getState().userId;
-  
-  if (!userId) {
-    return {
-      success: false,
-      content: '',
-      error: 'User not authenticated'
-    };
-  }
-  
-  const url = `${API_BASE_URL}/prompt/${userId}?user_type=${encodeURIComponent(userType)}&prompt_blob=${encodeURIComponent(promptBlob)}`;
+export async function fetchPrompt(_ = DEFAULT_USER_TYPE, promptBlob = DEFAULT_PROMPT_BLOB) {
+  const url = `${API_BASE_URL}/prompt?&prompt_blob=${encodeURIComponent(promptBlob)}`;
   const response = await get<PromptResponse>(url, true);
   
   return {
@@ -43,8 +32,8 @@ export async function savePrompt(prompt: string, userType = DEFAULT_USER_TYPE, p
     };
   }
   
-  // Include user_type and prompt_blob as URL parameters instead of in the body
-  const url = `${API_BASE_URL}/prompt/${userId}?user_type=${encodeURIComponent(userType)}&prompt_blob=${encodeURIComponent(promptBlob)}`;
+  // Use the new simplified endpoint format
+  const url = `${API_BASE_URL}/prompt?prompt_blob=${encodeURIComponent(promptBlob)}`;
   
   const response = await post<{}, { prompt: string }>(
     url,
