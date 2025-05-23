@@ -14,7 +14,7 @@ interface ChatResponse {
 
 export async function sendChatMessage(messages: Message[]) {
   // Use the new API endpoint format with patient_id in the path
-  const url = `${API_CONFIG.CHAT_API_URL}/chat`;
+  const url = `${API_CONFIG.CHAT_API_URL}/chat/session`;
   
   const response = await post<ChatResponse>(
     url,
