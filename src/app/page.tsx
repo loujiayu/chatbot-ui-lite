@@ -111,7 +111,7 @@ export default function Home() {
       setInputValue('');
 
       try {
-        const { success, message, error } = await sendChatMessage(updatedMessages, instruction);
+        const { success, message, error } = await sendChatMessage(updatedMessages);
         
         if (success) {
           const newMessages = [
